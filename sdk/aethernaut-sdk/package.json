@@ -1,0 +1,19 @@
+{
+  "name": "@aethernaut/sdk",
+  "version": "0.1.0",
+  "description": "AETHERNAUT TypeScript SDK — self-organizing agentic mesh network on Injective",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": ["dist", "src"],
+  "scripts": {
+    "build": "tsc",
+    "test": "echo \"No tests configured\"",
+    "prepublish": "npm run build"
+  },
+  "keywords": ["injective", "cosmwasm", "ai-agents", "defi", "mesh-network", "aethernaut"],
+  "license": "Apache-2.0",
+  "dependencies": {},
+  "devDependencies": {
+    "typescript": "^5.9.0"
+  }
+}
