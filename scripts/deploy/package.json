@@ -1,0 +1,18 @@
+{
+  "name": "@aethernaut/deploy",
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "deploy": "node deploy.mjs",
+    "test": "node test-e2e.mjs",
+    "query": "node query.mjs",
+    "interact": "node interact.mjs"
+  },
+  "dependencies": {
+    "@cosmjs/cosmwasm-stargate": "^0.32.4",
+    "@cosmjs/crypto": "^0.32.4",
+    "@cosmjs/encoding": "^0.32.4",
+    "@cosmjs/proto-signing": "^0.32.4",
+    "@cosmjs/stargate": "^0.32.4"
+  }
+}
