@@ -1,0 +1,40 @@
+[package]
+name = "aethernaut-mesh"
+version = "0.1.0"
+authors = ["AETHERNAUT Protocol"]
+edition = "2021"
+description = "AETHERNAUT Agentic Mesh Network — self-organizing AI agent coalitions on Injective"
+license = "Apache-2.0"
+repository = "https://github.com/dev-analyshd/aethernaut"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[features]
+default = ["export"]
+export = []
+backtraces = []
+library = []
+
+[package.metadata.scripts]
+optimize = """docker run --rm -v "$(pwd)":/code \
+  --mount type=volume,source="$(basename "$(pwd)")_cache",target=/code/target \
+  --mount type=volume,source=registry_cache,target=/usr/local/cargo/registry \
+  cosmwasm/optimizer:0.16.0
+"""
+
+[dependencies]
+cosmwasm-derive = { version = "2.1", default-features = false }
+cosmwasm-schema = { version = "2.1" }
+cosmwasm-std = { version = "2.1", default-features = false, features = ["std", "staking"] }
+cw-storage-plus = { version = "2.0" }
+cw2 = { version = "2.0" }
+schemars = { version = "0.8" }
+serde = { version = "1.0", default-features = false, features = ["derive"] }
+sha3 = { version = "0.10" }
+serde_json = { version = "1.0" }
+# Pin zeroize to avoid zeroize_derive 1.5.0 which requires edition2024 (Rust 1.85+)
+zeroize = { version = "=1.7.3", default-features = false }
+
+[dev-dependencies]
+cosmwasm-schema = { version = "2.1" }
