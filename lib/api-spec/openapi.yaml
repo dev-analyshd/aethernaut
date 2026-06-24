@@ -1,0 +1,868 @@
+openapi: 3.1.0
+info:
+  # Do not change the title, if the title changes, the import paths will be broken
+  title: Api
+  version: 0.1.0
+  description: AETHERNAUT API — Autonomous Ephemeral Task-Execution & Heuristic Routing Network
+servers:
+  - url: /api
+    description: Base API path
+tags:
+  - name: health
+    description: Health operations
+  - name: agents
+    description: Agent identity and registry (ERC-8004)
+  - name: coalitions
+    description: Ephemeral coalition formation and management
+  - name: tasks
+    description: Task execution and scheduling
+  - name: behavioral
+    description: Behavioral hashing and trust scoring
+  - name: network
+    description: Network overview and statistics
+
+paths:
+  /healthz:
+    get:
+      operationId: healthCheck
+      tags: [health]
+      summary: Health check
+      responses:
+        "200":
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+
+  # ─── AGENTS ───────────────────────────────────────────────────────────────
+
+  /agents:
+    get:
+      operationId: listAgents
+      tags: [agents]
+      summary: List all registered agents
+      responses:
+        "200":
+          description: List of agents
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Agent"
+    post:
+      operationId: registerAgent
+      tags: [agents]
+      summary: Register a new agent
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AgentInput"
+      responses:
+        "201":
+          description: Agent registered
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Agent"
+
+  /agents/{id}:
+    get:
+      operationId: getAgent
+      tags: [agents]
+      summary: Get agent by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Agent details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Agent"
+        "404":
+          description: Not found
+    patch:
+      operationId: updateAgent
+      tags: [agents]
+      summary: Update agent configuration
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AgentUpdate"
+      responses:
+        "200":
+          description: Updated agent
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Agent"
+
+  /agents/{id}/genomic-key:
+    get:
+      operationId: getAgentGenomicKey
+      tags: [agents]
+      summary: Get agent AGK evolution state
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Genomic key state
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GenomicKey"
+
+  /agents/{id}/behavioral-history:
+    get:
+      operationId: getAgentBehavioralHistory
+      tags: [agents]
+      summary: Get agent behavioral event history
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Behavioral events
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/BehavioralEvent"
+
+  /agents/{id}/trust-score:
+    get:
+      operationId: getAgentTrustScore
+      tags: [agents]
+      summary: Get agent trust profile
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Trust score profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TrustProfile"
+
+  # ─── COALITIONS ───────────────────────────────────────────────────────────
+
+  /coalitions:
+    get:
+      operationId: listCoalitions
+      tags: [coalitions]
+      summary: List all coalitions
+      responses:
+        "200":
+          description: List of coalitions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Coalition"
+    post:
+      operationId: formCoalition
+      tags: [coalitions]
+      summary: Form a new ephemeral coalition
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CoalitionInput"
+      responses:
+        "201":
+          description: Coalition formed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Coalition"
+
+  /coalitions/{id}:
+    get:
+      operationId: getCoalition
+      tags: [coalitions]
+      summary: Get coalition details
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Coalition details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Coalition"
+        "404":
+          description: Not found
+
+  /coalitions/{id}/dissolve:
+    post:
+      operationId: dissolveCoalition
+      tags: [coalitions]
+      summary: Dissolve a coalition
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Dissolved coalition
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Coalition"
+
+  /coalitions/{id}/members:
+    get:
+      operationId: getCoalitionMembers
+      tags: [coalitions]
+      summary: Get coalition members
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Coalition members
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CoalitionMember"
+
+  # ─── TASKS ────────────────────────────────────────────────────────────────
+
+  /tasks:
+    get:
+      operationId: listTasks
+      tags: [tasks]
+      summary: List all tasks
+      responses:
+        "200":
+          description: List of tasks
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Task"
+    post:
+      operationId: createTask
+      tags: [tasks]
+      summary: Create a task for coalition execution
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TaskInput"
+      responses:
+        "201":
+          description: Task created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Task"
+
+  /tasks/{id}:
+    get:
+      operationId: getTask
+      tags: [tasks]
+      summary: Get task details
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Task details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Task"
+        "404":
+          description: Not found
+
+  # ─── BEHAVIORAL ───────────────────────────────────────────────────────────
+
+  /behavioral/resonance:
+    post:
+      operationId: computeResonance
+      tags: [behavioral]
+      summary: Compute behavioral resonance between two agents
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ResonanceInput"
+      responses:
+        "200":
+          description: Resonance score
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResonanceResult"
+
+  /behavioral/coherence/{coalitionId}:
+    get:
+      operationId: getCoherenceScore
+      tags: [behavioral]
+      summary: Get Five-Plane Coherence score for a coalition
+      parameters:
+        - name: coalitionId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Coherence score breakdown
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CoherenceScore"
+
+  # ─── NETWORK ──────────────────────────────────────────────────────────────
+
+  /network/stats:
+    get:
+      operationId: getNetworkStats
+      tags: [network]
+      summary: Get AETHERNAUT network statistics
+      responses:
+        "200":
+          description: Network stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NetworkStats"
+
+  /network/activity:
+    get:
+      operationId: getNetworkActivity
+      tags: [network]
+      summary: Get recent network-wide activity feed
+      responses:
+        "200":
+          description: Activity events
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ActivityEvent"
+
+  /network/losar:
+    get:
+      operationId: getLosarRoutes
+      tags: [network]
+      summary: Get LOSAR scores for top routes
+      responses:
+        "200":
+          description: LOSAR route scores
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/LosarRoute"
+
+components:
+  schemas:
+    HealthStatus:
+      type: object
+      properties:
+        status:
+          type: string
+      required:
+        - status
+
+    # ─── AGENTS ─────────────────────────────────────────────────────────────
+
+    Agent:
+      type: object
+      required: [id, name, address, status, capabilities, reputationScore, genomicDepth, coalitionsFormed, tasksCompleted, createdAt]
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        address:
+          type: string
+        status:
+          type: string
+          enum: [active, idle, in_coalition, offline]
+        capabilities:
+          type: array
+          items:
+            type: string
+        reputationScore:
+          type: number
+        genomicDepth:
+          type: integer
+        coalitionsFormed:
+          type: integer
+        tasksCompleted:
+          type: integer
+        resonanceThreshold:
+          type: number
+        coherenceWeights:
+          $ref: "#/components/schemas/CoherenceWeights"
+        createdAt:
+          type: string
+          format: date-time
+        lastActiveAt:
+          type: ["string", "null"]
+          format: date-time
+
+    AgentInput:
+      type: object
+      required: [name, address, capabilities]
+      properties:
+        name:
+          type: string
+        address:
+          type: string
+        capabilities:
+          type: array
+          items:
+            type: string
+        resonanceThreshold:
+          type: number
+        coherenceWeights:
+          $ref: "#/components/schemas/CoherenceWeights"
+
+    AgentUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+        status:
+          type: string
+          enum: [active, idle, offline]
+        capabilities:
+          type: array
+          items:
+            type: string
+        resonanceThreshold:
+          type: number
+        coherenceWeights:
+          $ref: "#/components/schemas/CoherenceWeights"
+
+    CoherenceWeights:
+      type: object
+      properties:
+        physical:
+          type: number
+        mental:
+          type: number
+        spiritual:
+          type: number
+        conscious:
+          type: number
+        anima:
+          type: number
+
+    GenomicKey:
+      type: object
+      required: [agentId, currentHash, depth, lastEvolution, senseStrand, antisenseStrand, isVerified]
+      properties:
+        agentId:
+          type: string
+        currentHash:
+          type: string
+        depth:
+          type: integer
+        lastEvolution:
+          type: string
+          format: date-time
+        senseStrand:
+          type: string
+        antisenseStrand:
+          type: string
+        isVerified:
+          type: boolean
+
+    BehavioralEvent:
+      type: object
+      required: [id, agentId, eventType, behavioralHash, blockNumber, timestamp]
+      properties:
+        id:
+          type: string
+        agentId:
+          type: string
+        eventType:
+          type: string
+          enum: [SWAP, TRANSFER, LIQUIDITY, STAKE, GOVERNANCE, COALITION_JOIN, COALITION_EXIT, TASK_COMPLETE, MEV_RESIST, ARBITRAGE]
+        behavioralHash:
+          type: string
+        blockNumber:
+          type: integer
+        entropyScore:
+          type: number
+        manipulationFingerprintDetected:
+          type: boolean
+        timestamp:
+          type: string
+          format: date-time
+
+    TrustProfile:
+      type: object
+      required: [agentId, overallTrust, dimensions, topTrustedAgents]
+      properties:
+        agentId:
+          type: string
+        overallTrust:
+          type: number
+        dimensions:
+          $ref: "#/components/schemas/TrustDimensions"
+        topTrustedAgents:
+          type: array
+          items:
+            $ref: "#/components/schemas/TrustPair"
+
+    TrustDimensions:
+      type: object
+      properties:
+        transactionEntropy:
+          type: number
+        liquidityConsistency:
+          type: number
+        crossChainBreadth:
+          type: number
+        governanceQuality:
+          type: number
+        mevSustainability:
+          type: number
+        socialCoherence:
+          type: number
+
+    TrustPair:
+      type: object
+      required: [agentId, score]
+      properties:
+        agentId:
+          type: string
+        agentName:
+          type: string
+        score:
+          type: number
+
+    # ─── COALITIONS ─────────────────────────────────────────────────────────
+
+    Coalition:
+      type: object
+      required: [id, taskType, status, memberCount, minAgents, maxAgents, formationTrust, createdAt]
+      properties:
+        id:
+          type: string
+        taskType:
+          type: string
+        status:
+          type: string
+          enum: [forming, active, executing, dissolved, timed_out]
+        memberCount:
+          type: integer
+        minAgents:
+          type: integer
+        maxAgents:
+          type: integer
+        formationTrust:
+          type: number
+        coherenceScore:
+          type: ["number", "null"]
+        totalRewardDistributed:
+          type: ["number", "null"]
+        valueSplit:
+          type: string
+          enum: [proportional-to-contribution, equal, reputation-weighted]
+        timeoutSeconds:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+        dissolvedAt:
+          type: ["string", "null"]
+          format: date-time
+
+    CoalitionInput:
+      type: object
+      required: [taskType, minAgents, maxAgents]
+      properties:
+        taskType:
+          type: string
+        minAgents:
+          type: integer
+        maxAgents:
+          type: integer
+        seedAgentId:
+          type: ["string", "null"]
+        valueSplit:
+          type: string
+          enum: [proportional-to-contribution, equal, reputation-weighted]
+        timeoutSeconds:
+          type: integer
+
+    CoalitionMember:
+      type: object
+      required: [agentId, agentName, role, contribution, rewardShare, joinedAt]
+      properties:
+        agentId:
+          type: string
+        agentName:
+          type: string
+        role:
+          type: string
+          enum: [seed, participant, validator]
+        contribution:
+          type: number
+        rewardShare:
+          type: number
+        joinedAt:
+          type: string
+          format: date-time
+
+    # ─── TASKS ──────────────────────────────────────────────────────────────
+
+    Task:
+      type: object
+      required: [id, name, taskType, status, priority, createdAt]
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        taskType:
+          type: string
+          enum: [cross-chain-arbitrage, liquidity-migration, mev-resistance, governance-vote, regulatory-adapt]
+        status:
+          type: string
+          enum: [pending, assigned, executing, completed, failed, silenced]
+        priority:
+          type: string
+          enum: [low, medium, high, critical]
+        assignedCoalitionId:
+          type: ["string", "null"]
+        coherenceRequired:
+          type: number
+        route:
+          type: ["string", "null"]
+        estimatedReward:
+          type: ["number", "null"]
+        actualReward:
+          type: ["number", "null"]
+        silenceReason:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+          format: date-time
+        completedAt:
+          type: ["string", "null"]
+          format: date-time
+
+    TaskInput:
+      type: object
+      required: [name, taskType, priority]
+      properties:
+        name:
+          type: string
+        taskType:
+          type: string
+          enum: [cross-chain-arbitrage, liquidity-migration, mev-resistance, governance-vote, regulatory-adapt]
+        priority:
+          type: string
+          enum: [low, medium, high, critical]
+        coherenceRequired:
+          type: number
+        route:
+          type: string
+        estimatedReward:
+          type: number
+
+    # ─── BEHAVIORAL ─────────────────────────────────────────────────────────
+
+    ResonanceInput:
+      type: object
+      required: [agentAId, agentBId]
+      properties:
+        agentAId:
+          type: string
+        agentBId:
+          type: string
+
+    ResonanceResult:
+      type: object
+      required: [agentAId, agentBId, resonanceScore, canCommunicate, sharedFrequencies]
+      properties:
+        agentAId:
+          type: string
+        agentBId:
+          type: string
+        resonanceScore:
+          type: number
+        canCommunicate:
+          type: boolean
+        sharedFrequencies:
+          type: integer
+        dimensionScores:
+          $ref: "#/components/schemas/TrustDimensions"
+
+    CoherenceScore:
+      type: object
+      required: [coalitionId, totalScore, threshold, isActionable, planes]
+      properties:
+        coalitionId:
+          type: string
+        totalScore:
+          type: number
+        threshold:
+          type: number
+        isActionable:
+          type: boolean
+        planes:
+          $ref: "#/components/schemas/CoherencePlanes"
+
+    CoherencePlanes:
+      type: object
+      properties:
+        physical:
+          type: number
+        mental:
+          type: number
+        spiritual:
+          type: number
+        conscious:
+          type: number
+        anima:
+          type: number
+
+    # ─── NETWORK ────────────────────────────────────────────────────────────
+
+    NetworkStats:
+      type: object
+      required: [totalAgents, activeAgents, activeCoalitions, totalTasksCompleted, totalRewardDistributed, averageTrustScore, networkCoherence]
+      properties:
+        totalAgents:
+          type: integer
+        activeAgents:
+          type: integer
+        activeCoalitions:
+          type: integer
+        totalTasksCompleted:
+          type: integer
+        totalRewardDistributed:
+          type: number
+        averageTrustScore:
+          type: number
+        networkCoherence:
+          type: number
+        agentsByCapability:
+          type: array
+          items:
+            $ref: "#/components/schemas/CapabilityCount"
+        tasksByType:
+          type: array
+          items:
+            $ref: "#/components/schemas/TaskTypeCount"
+
+    CapabilityCount:
+      type: object
+      required: [capability, count]
+      properties:
+        capability:
+          type: string
+        count:
+          type: integer
+
+    TaskTypeCount:
+      type: object
+      required: [taskType, count, totalReward]
+      properties:
+        taskType:
+          type: string
+        count:
+          type: integer
+        totalReward:
+          type: number
+
+    ActivityEvent:
+      type: object
+      required: [id, eventType, description, timestamp]
+      properties:
+        id:
+          type: string
+        eventType:
+          type: string
+          enum: [agent_registered, coalition_formed, coalition_dissolved, task_completed, task_silenced, trust_milestone, genomic_evolution]
+        description:
+          type: string
+        agentId:
+          type: ["string", "null"]
+        coalitionId:
+          type: ["string", "null"]
+        taskId:
+          type: ["string", "null"]
+        value:
+          type: ["number", "null"]
+        timestamp:
+          type: string
+          format: date-time
+
+    LosarRoute:
+      type: object
+      required: [route, losarScore, liquidityDepth, sybildResistance, stressRatio, manipulationScore, isOptimal]
+      properties:
+        route:
+          type: string
+        losarScore:
+          type: number
+        liquidityDepth:
+          type: number
+        sybildResistance:
+          type: number
+        stressRatio:
+          type: number
+        manipulationScore:
+          type: number
+        isOptimal:
+          type: boolean
