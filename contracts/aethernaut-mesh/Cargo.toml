@@ -34,7 +34,7 @@ serde = { version = "1.0", default-features = false, features = ["derive"] }
 sha3 = { version = "0.10" }
 serde_json = { version = "1.0" }
 # Pin zeroize to avoid zeroize_derive 1.5.0 which requires edition2024 (Rust 1.85+)
-zeroize = { version = "=1.7.3", default-features = false }
+zeroize = { version = ">=1.3, <1.8", default-features = false }
 
 [dev-dependencies]
 cosmwasm-schema = { version = "2.1" }
